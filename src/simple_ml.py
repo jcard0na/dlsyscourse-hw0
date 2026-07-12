@@ -48,7 +48,26 @@ def parse_mnist(image_filename, label_filename):
                 for MNIST will contain the values 0-9.
     """
     ### BEGIN YOUR CODE
-    pass
+    # 1. Parse the labels file
+    with gzip.open(label_filename, 'rb') as f_label:
+        # Magic number is 4 bytes, number of items is 4 bytes (big-endian: '>')
+        magic, num_labels = struct.unpack('>II', f_label.read(8))
+        # Read the rest of the file into a uint8 array
+        y = np.frombuffer(f_label.read(), dtype=np.uint8)
+
+    # 2. Parse the images file
+    with gzip.open(image_filename, 'rb') as f_image:
+        magic, num_images, rows, cols = struct.unpack('>IIII', f_image.read(16))
+
+        # Load directly as float32 to avoid intermediate conversion mismatches
+        X = np.frombuffer(f_image.read(), dtype=np.uint8).astype(np.float32)
+
+        X = X / np.float32(255.0)
+
+        # Reshape to final dimensions
+        X = X.reshape(num_images, rows * cols)
+
+    return X, y
     ### END YOUR CODE
 
 
