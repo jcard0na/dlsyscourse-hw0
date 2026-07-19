@@ -87,11 +87,22 @@ def softmax_loss(Z, y):
         Average softmax loss over the sample.
     """
     ### BEGIN YOUR CODE
-    pass
+    # 1. Get the number of samples in the batch
+    batch_size = len(y)
+
+    # 2. Compute the log-sum-exp for each row (axis=1 collapses the columns)
+    log_sum_exp = np.log(np.sum(np.exp(Z), axis=1))
+
+    # 3. Use advanced indexing to extract the true class logits (z_y) for each sample
+    z_y = Z[np.arange(batch_size), y]
+
+    # 4. Compute individual losses and return the batch average
+    return np.mean(log_sum_exp - z_y)
     ### END YOUR CODE
 
 
 def softmax_regression_epoch(X, y, theta, lr = 0.1, batch=100):
+        # CRITICAL: Use in-place division to enforce strict float32 math execution
     """ Run a single epoch of SGD for softmax regression on the data, using
     the step size lr and specified batch size.  This function should modify the
     theta matrix in place, and you should iterate through batches in X _without_
