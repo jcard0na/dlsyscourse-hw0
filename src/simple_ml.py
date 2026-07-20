@@ -122,28 +122,36 @@ def softmax_regression_epoch(X, y, theta, lr = 0.1, batch=100):
     """
 
     ### BEGIN YOUR CODE
-    num_examples = len(y)
-    num_classes = k = np.shape(theta)[1]
+    num_examples = X.shape[0]
+    num_classes = theta.shape[1]
 
-    batch_i = 0
-    while batch_i < num_examples:
-        m = min(batch, num_examples - batch_i * batch)
-        X_batch = X[batch_i:batch_i + m]
-        y_batch = y[batch_i:batch_i + m]
-        Z = softmax_loss(X_batch @ theta, y_batch)
+    # Iterate through the data using step sizes of the batch size
+    # Note that in python slicing is forgiving: requesting past the
+    # array size does not throw, just truncates
+    for batch_i in range(0, num_examples, batch):
+        X_batch = X[batch_i : batch_i + batch]
+        y_batch = y[batch_i : batch_i + batch]
+        m = X_batch.shape[0]
 
-        # Initialize a matrix of zeros
-        I_y = np.zeros((m, k), dtype=int)
+        # 1. Compute logits (linear layer outcomes)
+        logits = X_batch @ theta
 
-        # Fill the indices with 1s
-        I_y[np.arange(m), y_batch] = 1
+        # 2. Compute stable softmax probabilities (Z)
+        # Subtract max for numerical stability before exponentiation
+        shifted_logits = logits - np.max(logits, axis=1, keepdims=True)
+        exps = np.exp(shifted_logits)
+        Z = exps / np.sum(exps, axis=1, keepdims=True)
 
-        # Update theta
-        theta -= lr * (np.transpose(X_batch) @ (Z - I_y)) / m
+        # 3. Create the one-hot encoded matrix (I_y) matching the Z precision
+        I_y = np.zeros_like(Z)
+        I_y[np.arange(m), y_batch] = 1.0
 
-        batch_i += m
+        # 4. Compute gradient: (X_batch^T @ (Z - I_y)) / m
+        # Enforce in-place operations or strict casting to keep float32
+        grad = (X_batch.T @ (Z - I_y)) / np.float32(m)
 
-    pass
+        # 5. Update theta in-place
+        theta -= lr * grad
     ### END YOUR CODE
 
 
