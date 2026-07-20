@@ -120,7 +120,28 @@ def softmax_regression_epoch(X, y, theta, lr = 0.1, batch=100):
     Returns:
         None
     """
+
     ### BEGIN YOUR CODE
+    num_examples = len(y)
+    num_classes = k = np.shape(theta)[1]
+
+    batch_i = 0
+    while batch_i < num_examples:
+        m = min(batch, num_examples - batch_i * batch)
+        X_batch = X[batch_i:batch_i + m]
+        Z = softmax_loss(X_batch @ theta)
+
+        # Initialize a matrix of zeros
+        I_y = np.zeros((m, k), dtype=int)
+
+        # Fill the indices with 1s
+        I_y[np.arange(m), y[batch_i:batch_i + m]] = 1
+
+        # Update theta
+        theta -= lr * (np.transpose(X_batch) @ (Z - I_y)) / m
+
+        batch_i += m
+
     pass
     ### END YOUR CODE
 
